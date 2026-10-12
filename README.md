@@ -21,11 +21,11 @@ Role switching is automatically hidden in production builds unless `NEXT_PUBLIC_
 - Next.js App Router, React, TypeScript
 - Tailwind CSS, Lucide icons
 - Supabase migration starter (not connected in demo)
-- Map panel uses visibly labeled illustrative demo places
+- Explore includes an OpenStreetMap view centered on Pitampura, Delhi; the family check-in remains simulated
 
 ## Safety and privacy notes
 
-- The demo uses privacy-preserving sample display names and no exact coordinates.
-- No chat, public child search, child photography, or live location collection is provided.
+- The map shows a neighborhood, not a child's device location. A child-controlled check-in shares only the sample neighborhood in browser state.
+- No live GPS, background tracking, or location data collection is provided. No chat, public child search, or child photography is provided.
 - The sample map and session status do not represent verified safety, availability, or supervision.
 - Real use requires a legal/privacy review, guardian consent, robust identity review, audited authorization, retention limits, and operational safety processes.
