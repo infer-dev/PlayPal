@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="48" viewBox="0 0 140 48" role="img" aria-labelledby="title">
+  <title id="title">PlayPal</title>
+  <text x="3" y="31" font-family="Nunito, Arial, sans-serif" font-size="29" font-weight="900" letter-spacing="-1.8" fill="#6FAF59">Play</text>
+  <text x="61" y="31" font-family="Nunito, Arial, sans-serif" font-size="29" font-weight="900" letter-spacing="-1.8" fill="#159EAA">Pal</text>
+  <path d="M91 37c7 7 20 7 27 0" fill="none" stroke="#159EAA" stroke-width="3.5" stroke-linecap="round"/>
+</svg>
