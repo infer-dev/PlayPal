@@ -11,7 +11,7 @@ export default function AuthPage({ initialMode, onBack, onDemo }: { initialMode:
   const [mode, setMode] = useState(initialMode);
   const [audience, setAudience] = useState<Audience>('parent');
   const [parentName, setParentName] = useState('');
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [relationship, setRelationship] = useState('Parent');
@@ -43,8 +43,21 @@ export default function AuthPage({ initialMode, onBack, onDemo }: { initialMode:
       if (password.length < 8) return setError('Use a password with at least 8 characters.');
       if (password !== confirm) return setError('The passwords do not match.');
     }
-    if (!/^\S+@\S+\.\S+$/.test(email)) return setError('Enter a valid parent email address.');
+    const normalizedPhone = phone.replace(/[\s()-]/g, '');
+    if (!/^\+?\d{7,15}$/.test(normalizedPhone)) return setError('Enter a valid phone number (7–15 digits, with country code if needed).');
     if (!signup && password.length < 8) return setError('Enter your password (at least 8 characters).');
+    try {
+      const accounts = JSON.parse(localStorage.getItem('playpal-demo-accounts') || '{}') as Record<string, { password: string; name: string }>;
+      if (signup) {
+        if (accounts[normalizedPhone]) return setError('An account with this phone number already exists. Please log in.');
+        accounts[normalizedPhone] = { password, name: parentName.trim() };
+        localStorage.setItem('playpal-demo-accounts', JSON.stringify(accounts));
+      } else if (!accounts[normalizedPhone] || accounts[normalizedPhone].password !== password) {
+        return setError('Phone number or password is incorrect. Create an account first if you are new to PlayPal.');
+      }
+    } catch {
+      return setError('Local storage is unavailable in this browser. Please enable it to continue.');
+    }
     setSubmitted(true);
   }
 
@@ -56,8 +69,8 @@ export default function AuthPage({ initialMode, onBack, onDemo }: { initialMode:
     <div className="card" style={{ width: 'min(520px, 100%)', boxSizing: 'border-box', padding: 27, background: '#fff', border: '1px solid #efeee9', borderRadius: 18, boxShadow: '0 3px 14px #242c2410' }}>
       <button onClick={onBack} style={{ border: 0, background: 'none', color: '#17633d', fontSize: 12, fontWeight: 700, padding: 0 }}><ArrowLeft size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />Back to PlayPal</button>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 19 }}><span style={{ width: 32, height: 32, borderRadius: 10, background: '#17633d', color: '#fff', display: 'grid', placeItems: 'center' }}><Sun size={18} /></span><span className="brand" style={{ fontSize: 21, color: '#17633d' }}>playpal<span style={{ color: '#159eaa' }}>.</span></span></div>
-      <h1 style={{ fontFamily: 'Nunito', fontSize: 27, margin: '13px 0 5px' }}>{submitted ? 'All set for the demo' : signup ? 'Create your family account' : 'Welcome back'}</h1>
-      <p style={{ color: '#788078', fontSize: 13, margin: '0 0 17px', lineHeight: 1.55 }}>{submitted ? 'This form was checked in your browser. No account or child profile was saved.' : 'Choose who is signing in. Children join through a parent-created profile.'}</p>
+      <h1 style={{ fontFamily: 'Nunito', fontSize: 27, margin: '13px 0 5px' }}>{submitted ? 'Account details saved' : signup ? 'Create your family account' : 'Welcome back'}</h1>
+      <p style={{ color: '#788078', fontSize: 13, margin: '0 0 17px', lineHeight: 1.55 }}>{submitted ? audience === 'parent' ? 'Your login details were saved in this browser. Child profile data is not saved.' : 'Your details were checked in this browser.' : 'Select an account type. Children join through a profile created by a parent or legal guardian.'}</p>
       {!submitted ? <>
         <div role="tablist" aria-label="Account type" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: 5, background: '#f4f6f2', borderRadius: 12 }}>
           {(['parent', 'child'] as const).map((type) => <button key={type} role="tab" aria-selected={audience === type} onClick={() => { setAudience(type); setError(''); }} style={{ border: 0, borderRadius: 9, background: audience === type ? '#fff' : 'transparent', color: audience === type ? '#17633d' : '#727a72', padding: 10, fontSize: 12, fontWeight: 800, boxShadow: audience === type ? '0 1px 4px #182a1814' : 'none' }}>{type === 'parent' ? <><Users size={15} style={{ verticalAlign: 'middle', marginRight: 6 }} />Parent / guardian</> : <><UserRound size={15} style={{ verticalAlign: 'middle', marginRight: 6 }} />Child</>}</button>)}
@@ -69,7 +82,7 @@ export default function AuthPage({ initialMode, onBack, onDemo }: { initialMode:
               <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginTop: 16 }}>Your display name<input autoComplete="name" value={parentName} onChange={(e) => setParentName(e.target.value)} placeholder="Name your family knows you by" style={inputStyle} /></label>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginTop: 13 }}>Relationship to the child<select value={relationship} onChange={(e) => setRelationship(e.target.value)} style={inputStyle}><option>Parent</option><option>Legal guardian</option><option>Other guardian</option></select></label>
             </>}
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginTop: 14 }}>Parent email<input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" style={inputStyle} /></label>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginTop: 14 }}>Phone number<input type="tel" autoComplete="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Include country code if needed" style={inputStyle} /></label>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginTop: 13 }}>Password<input type="password" autoComplete={signup ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" style={inputStyle} /></label>
             {signup && <>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginTop: 13 }}>Confirm password<input type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Enter the same password again" style={inputStyle} /></label>
@@ -97,13 +110,12 @@ export default function AuthPage({ initialMode, onBack, onDemo }: { initialMode:
           {error && <div role="alert" style={{ marginTop: 13, padding: 10, borderRadius: 9, background: '#fff0ec', color: '#a34f3d', fontSize: 12 }}>{error}</div>}
           {!(signup && audience === 'child') && <button className="btn-primary" type="submit" style={{ width: '100%', marginTop: 17, background: '#17633d', color: '#fff', border: 0, borderRadius: 11, padding: '12px 17px', fontWeight: 700 }}>{signup ? 'Review family details' : 'Continue'}</button>}
         </form>
-        {!(signup && audience === 'child') && <button className="btn-soft" style={{ width: '100%', marginTop: 9, background: '#eef5ef', color: '#17633d', border: 0, borderRadius: 10, padding: '10px 13px', fontWeight: 700 }} onClick={() => onDemo(audience)}>Continue with demo account</button>}
-        <div style={{ textAlign: 'center', fontSize: 11, color: '#858c85', marginTop: 16 }}>{signup ? 'Already have an account?' : 'New to PlayPal?'} <button onClick={() => { setMode(signup ? 'login' : 'signup'); setError(''); setSubmitted(false); }} style={{ border: 0, background: 'none', color: '#17633d', fontWeight: 800 }}>{signup ? 'Log in' : 'Create account'}</button>{!signup && audience === 'parent' && <> · <button onClick={() => setError('Password recovery needs configured Supabase Auth. No email was sent.')} style={{ border: 0, background: 'none', color: '#17633d', fontWeight: 700 }}>Forgot password?</button></>}</div>
-        <div style={{ fontSize: 10, color: '#8b7955', background: '#fff8e8', padding: 10, borderRadius: 9, marginTop: 16, lineHeight: 1.5 }}>Demo only. Forms validate in your browser but do not create accounts or transmit personal information. Supabase Auth is not configured.</div>
+        {!(signup && audience === 'child') && <button className="btn-soft" style={{ width: '100%', marginTop: 9, background: '#eef5ef', color: '#17633d', border: 0, borderRadius: 10, padding: '10px 13px', fontWeight: 700 }} onClick={() => onDemo(audience)}>Continue with preview account</button>}
+        <div style={{ textAlign: 'center', fontSize: 11, color: '#858c85', marginTop: 16 }}>{signup ? 'Already have an account?' : 'New to PlayPal?'} <button onClick={() => { setMode(signup ? 'login' : 'signup'); setError(''); setSubmitted(false); }} style={{ border: 0, background: 'none', color: '#17633d', fontWeight: 800 }}>{signup ? 'Log in' : 'Create account'}</button>{!signup && audience === 'parent' && <> · <button onClick={() => setError('Password recovery will be available when account recovery is configured.')} style={{ border: 0, background: 'none', color: '#17633d', fontWeight: 700 }}>Forgot password?</button></>}</div>
       </> : <>
         <div style={{ padding: 14, background: '#f4f7f1', borderRadius: 12, color: '#52694f', fontSize: 13, lineHeight: 1.65 }}>{audience === 'child' ? 'Your details look ready. In a real PlayPal account, your parent manages your profile and permissions.' : `${children.length} child profile${children.length === 1 ? '' : 's'} included. In a real account, profiles and approvals are saved securely with Supabase.`}</div>
         <button className="btn-primary" onClick={() => setSubmitted(false)} style={{ marginTop: 15, marginRight: 8 }}>Edit details</button>
-        <button className="btn-soft" onClick={() => onDemo(audience)} style={{ marginTop: 15 }}>Explore the sample app</button>
+        <button className="btn-soft" onClick={() => onDemo(audience)} style={{ marginTop: 15 }}>Explore PlayPal</button>
       </>}
     </div>
   </div>;
